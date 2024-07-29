@@ -11,17 +11,19 @@
 
 #if defined (ESP8266) || defined(ARDUINO_ARCH_RP2040)
   #include <bearssl/bearssl_hmac.h>
-#endif
-#if defined (ESP32)
+#elif defined (ESP32)
   #include "mbedtls/md.h"
+#else
+  #include <Seeed_mbedtls.h>
+  #include "extralibs/Base64/Base64.h"
 #endif
-  #include <libb64/cencode.h>
-  
+
 #include "SinricProNamespace.h"
 namespace SINRICPRO_NAMESPACE {
 
 String HMACbase64(const String &message, const String &key) {
   byte hmacResult[32];
+
 #if defined(ESP8266) || defined(ARDUINO_ARCH_RP2040)
   br_hmac_key_context keyContext; // Holds general HMAC info
   br_hmac_context hmacContext;    // Holds general HMAC info + specific info for the current operation
@@ -32,7 +34,7 @@ String HMACbase64(const String &message, const String &key) {
   br_hmac_out(&hmacContext, hmacResult);
 #endif
 
-#if defined(ESP32)
+#if defined(ESP32) || defined(ARDUINO_UNOWIFIR4)
   mbedtls_md_context_t ctx;
   mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
 
@@ -44,17 +46,24 @@ String HMACbase64(const String &message, const String &key) {
   mbedtls_md_free(&ctx);
 #endif
 
-
-  base64_encodestate _state;
-  base64_init_encodestate(&_state);
-#if defined(base64_encode_expected_len_nonewlines)
-  _state.stepsnewline = -1;
-#endif  
-  char base64encodedHMAC[base64_encode_expected_len(32) + 1];
-  int len = base64_encode_block((const char *)hmacResult, 32, base64encodedHMAC, &_state);
-  base64_encode_blockend((base64encodedHMAC + len), &_state);
-  
-  return String { base64encodedHMAC };
+#if defined(ESP8266) || defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
+    base64_encodestate _state;
+    base64_init_encodestate(&_state);
+  #if defined(base64_encode_expected_len_nonewlines)
+    _state.stepsnewline = -1;
+  #endif  
+    char base64encodedHMAC[base64_encode_expected_len(32) + 1];
+    int len = base64_encode_block((const char *)hmacResult, 32, base64encodedHMAC, &_state);
+    base64_encode_blockend((base64encodedHMAC + len), &_state);
+    return String { base64encodedHMAC };
+#else
+  int b64_len = base64_enc_len(32);
+  char sigBuf[b64_len + 1];
+  base64_encode(sigBuf, (char*) hmacResult, 32);
+  sigBuf[b64_len] = 0;  
+  return String { sigBuf };
+#endif
+ 
 }
 
 String extractPayload(const char *message) {

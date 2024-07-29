@@ -28,7 +28,7 @@ FSTR(LOCK, JAMMED);            // "JAMMED"
  * @section LockStateCallback Example-Code
  * @code
  * bool onLockState(const String &deviceId, bool &lockState) {
- *   Serial.printf("Device is %s\r\n", lockState?"locked":"unlocked");
+ *   // Serial.printf("Device is %s\r\n", lockState?"locked":"unlocked");
  *   return true;
  * }
  * @endcode

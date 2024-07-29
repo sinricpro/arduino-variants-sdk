@@ -15,36 +15,27 @@
  */
 
 // Uncomment the following line to enable serial debug output
-//#define ENABLE_DEBUG
+#define ENABLE_DEBUG
+#define SINRICPRO_NOSSL
 
 #ifdef ENABLE_DEBUG
-  #define DEBUG_ESP_PORT Serial
-  #define NODEBUG_WEBSOCKETS
-  #define NDEBUG
-#endif 
+//#define NODEBUG_WEBSOCKETS
+//#define NDEBUG
+#endif
 
 #include <Arduino.h>
-#if defined(ESP8266)
-  #include <ESP8266WiFi.h>
-#elif defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
-  #include <WiFi.h>
-#endif
+#include "WiFiS3.h"
 
 #include "SinricPro.h"
 #include "SinricProSwitch.h"
 
-#define WIFI_SSID         "YOUR-WIFI-SSID"    
-#define WIFI_PASS         "YOUR-WIFI-PASSWORD"
-#define APP_KEY           "YOUR-APP-KEY"      // Should look like "de0bxxxx-1x3x-4x3x-ax2x-5dabxxxxxxxx"
-#define APP_SECRET        "YOUR-APP-SECRET"   // Should look like "5f36xxxx-x3x7-4x3x-xexe-e86724a9xxxx-4c4axxxx-3x3x-x5xe-x9x3-333d65xxxxxx"
-#define SWITCH_ID         "YOUR-DEVICE-ID"    // Should look like "5dc1564130xxxxxxxxxxxxxx"
-#define BAUD_RATE         115200                // Change baudrate to your need
+#define WIFI_SSID   ""
+#define WIFI_PASS   ""
+#define APP_KEY     ""  // Should look like "de0bxxxx-1x3x-4x3x-ax2x-5dabxxxxxxxx"
+#define APP_SECRET  ""  // Should look like "5f36xxxx-x3x7-4x3x-xexe-e86724a9xxxx-4c4axxxx-3x3x-x5xe-x9x3-333d65xxxxxx"
+#define SWITCH_ID   ""  // Should look like "5dc1564130xxxxxxxxxxxxxx"
+#define BAUD_RATE   115200              // Change baudrate to your need
 
-#define BUTTON_PIN 0   // GPIO for BUTTON (inverted: LOW = pressed, HIGH = released)
-#define LED_PIN   2   // GPIO for LED (inverted)
-
-bool myPowerState = false;
-unsigned long lastBtnPress = 0;
 
 /* bool onPowerState(String deviceId, bool &state) 
  *
@@ -59,56 +50,47 @@ unsigned long lastBtnPress = 0;
  * return
  *  true if request should be marked as handled correctly / false if not
  */
-bool onPowerState(const String &deviceId, bool &state) {
-  Serial.printf("Device %s turned %s (via SinricPro) \r\n", deviceId.c_str(), state?"on":"off");
-  myPowerState = state;
-  digitalWrite(LED_PIN, myPowerState?LOW:HIGH);
-  return true; // request handled properly
+bool onPowerState(const String& deviceId, bool& state) {
+  Serial.println( state ? "on":"off");
+  return true;  // request handled properly
 }
-
-void handleButtonPress() {
-  unsigned long actualMillis = millis(); // get actual millis() and keep it in variable actualMillis
-  if (digitalRead(BUTTON_PIN) == LOW && actualMillis - lastBtnPress > 1000)  { // is button pressed (inverted logic! button pressed = LOW) and debounced?
-    if (myPowerState) {     // flip myPowerState: if it was true, set it to false, vice versa
-      myPowerState = false;
-    } else {
-      myPowerState = true;
-    }
-    digitalWrite(LED_PIN, myPowerState?LOW:HIGH); // if myPowerState indicates device turned on: turn on led (builtin led uses inverted logic: LOW = LED ON / HIGH = LED OFF)
-
-    // get Switch device back
-    SinricProSwitch& mySwitch = SinricPro[SWITCH_ID];
-    // send powerstate event
-    bool success = mySwitch.sendPowerStateEvent(myPowerState); // send the new powerState to SinricPro server
-    if(!success) {
-      Serial.printf("Something went wrong...could not send Event to server!\r\n");
-    }
-
-    Serial.printf("Device %s turned %s (manually via flashbutton)\r\n", mySwitch.getDeviceId().c_str(), myPowerState?"on":"off");
-
-    lastBtnPress = actualMillis;  // update last button press variable
-  } 
-}
+ 
 
 // setup function for WiFi connection
 void setupWiFi() {
-  Serial.printf("\r\n[Wifi]: Connecting");
-
-  #if defined(ESP8266)
-    WiFi.setSleepMode(WIFI_NONE_SLEEP); 
-    WiFi.setAutoReconnect(true);
-  #elif defined(ESP32)
-    WiFi.setSleep(false); 
-    WiFi.setAutoReconnect(true);
-  #endif
-
-  WiFi.begin(WIFI_SSID, WIFI_PASS); 
-
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.printf(".");
-    delay(250);
+  // check for the WiFi module:
+  if (WiFi.status() == WL_NO_MODULE) {
+    Serial.println("Communication with WiFi module failed!");
+    // don't continue
+    while (true);
   }
-  Serial.printf("connected!\r\n[WiFi]: IP-Address is %s\r\n", WiFi.localIP().toString().c_str());
+
+  String fv = WiFi.firmwareVersion();
+  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
+    Serial.println("Please upgrade the firmware");
+  }
+
+  Serial.println("[Wifi]: Connecting");
+
+  int status = WL_IDLE_STATUS;
+
+  // attempt to connect to WiFi network:
+  while (status != WL_CONNECTED) {
+    Serial.print("[Wifi]: Attempting to connect to SSID: ");
+
+    Serial.println(WIFI_SSID);
+    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+    status = WiFi.begin(WIFI_SSID, WIFI_PASS);
+     
+    delay(1000);
+  }
+
+  Serial.println("Connected!");
+
+  // print your board's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
 }
 
 // setup function for SinricPro
@@ -120,24 +102,30 @@ void setupSinricPro() {
   mySwitch.onPowerState(onPowerState);
 
   // setup SinricPro
-  SinricPro.onConnected([](){ Serial.printf("Connected to SinricPro\r\n"); }); 
-  SinricPro.onDisconnected([](){ Serial.printf("Disconnected from SinricPro\r\n"); });
+  SinricPro.onConnected([]() {
+    Serial.println("Connected to SinricPro");
+  });
+
+  SinricPro.onDisconnected([]() {
+    Serial.println("Disconnected from SinricPro\r\n");
+  });
+
   //SinricPro.restoreDeviceStates(true); // Uncomment to restore the last known state from the server.
   SinricPro.begin(APP_KEY, APP_SECRET);
 }
 
 // main setup function
 void setup() {
-  pinMode(BUTTON_PIN, INPUT_PULLUP); // GPIO 0 as input, pulled high
-  pinMode(LED_PIN, OUTPUT); // define LED GPIO as output
-  digitalWrite(LED_PIN, HIGH); // turn off LED on bootup
+  //Initialize serial and wait for port to open:
+  Serial.begin(BAUD_RATE);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
 
-  Serial.begin(BAUD_RATE); Serial.printf("\r\n\r\n");
   setupWiFi();
   setupSinricPro();
 }
 
-void loop() {
-  handleButtonPress();
+void loop() { 
   SinricPro.handle();
 }

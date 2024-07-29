@@ -11,6 +11,8 @@
     #include <ESP8266WiFi.h>
 #elif defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
     #include <WiFi.h>
+#elif defined(ARDUINO_MINIMA) || defined(ARDUINO_UNOWIFIR4)
+    #include <WiFiS3.h>
 #endif
 
 #include <ArduinoJson.h>
@@ -92,13 +94,29 @@ void WebsocketListener::setExtraHeaders() {
     const char* platform = "ESP32";
 #elif defined(ARDUINO_ARCH_RP2040)
     const char* platform = "RP2040";
+#elif defined(ARDUINO_UNOWIFIR4)
+    const char* platform = "UNOWIFIR4";
+#elif defined(ARDUINO_MINIMA)
+    const char* platform = "MINIMA";
 #endif
-
+    
+    byte mac[6];
+    WiFi.macAddress(mac);
+    String macStr = "";
+    for (int i = 0; i < 6; i++) {
+        if (i > 0) {
+            macStr += ":";
+        }
+        macStr += String(mac[i], 16);
+    }
+    macStr.toUpperCase(); // Convert to uppercase, optional
+    
     String headers = "appkey:" + appKey;
     headers += "\r\ndeviceids:" + deviceIds;
     headers += "\r\nrestoredevicestates:" + String(restoreDeviceStates ? "true" : "false");
     headers += "\r\nip:" + WiFi.localIP().toString();
-    headers += "\r\nmac:" + WiFi.macAddress();
+    // headers += "\r\nmac:" + WiFi.macAddress();
+    headers += "\r\nmac:" + macStr;
     headers += "\r\nplatform:" + String(platform);
     headers += "\r\nSDKVersion:" + String(SINRICPRO_VERSION);
 
