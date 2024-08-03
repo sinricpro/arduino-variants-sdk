@@ -115,7 +115,6 @@ void WebsocketListener::setExtraHeaders() {
     headers += "\r\ndeviceids:" + deviceIds;
     headers += "\r\nrestoredevicestates:" + String(restoreDeviceStates ? "true" : "false");
     headers += "\r\nip:" + WiFi.localIP().toString();
-    // headers += "\r\nmac:" + WiFi.macAddress();
     headers += "\r\nmac:" + macStr;
     headers += "\r\nplatform:" + String(platform);
     headers += "\r\nSDKVersion:" + String(SINRICPRO_VERSION);
