@@ -1,42 +1,36 @@
 {
-  "name": "SinricPro",
-  "keywords": "ethernet, sinric, alexa, iot",
-  "description": "Library for https://sinric.pro - simple way to connect your device to alexa",
+  "name": "SinricPro_Renesas",
+  "keywords": "renesas, ethernet, sinric, alexa, iot",
+  "description": "Arduino Renesas library for https://sinric.pro",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sinricpro/esp8266-esp32-sdk"
+    "url": "https://github.com/sinricpro/arduino-renesas-sdk"
   },
   "authors": [
     {
-      "name": "Boris Jaeger",
-      "email": "sivar2311@gmail.com",
+      "name": "SinricPro",
+      "email": "support@sinric.com",
       "maintainer": true
     }
   ],
-  "version": "3.2.0",
+  "version": "1.0.0",
   "frameworks": "arduino",
   "platforms": [
-    "espressif8266",
-    "espressif32",
-    "raspberrypi"
+    "renesas-ra"
   ],
   "dependencies": [
     {
       "name": "ArduinoJson",
       "version": "^7.0.3",
       "platforms": [
-        "espressif32",
-        "espressif8266",
-        "raspberrypi"
+        "renesas-ra"
       ]
     },
     {
       "name": "WebSockets",
-      "version": "^2.4.0",
+      "version": "^2.5.1",
       "platforms": [
-        "espressif32",
-        "espressif8266",
-        "raspberrypi"
+        "renesas-ra"
       ]
     }
   ],
