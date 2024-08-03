@@ -15,13 +15,13 @@
  */
 
 // Uncomment the following line to enable serial debug output
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 #define SINRICPRO_NOSSL
 
-#ifdef ENABLE_DEBUG
+//#ifdef ENABLE_DEBUG
 //#define NODEBUG_WEBSOCKETS
 //#define NDEBUG
-#endif
+//#endif
 
 #include <Arduino.h>
 #include "WiFiS3.h"
