@@ -7,6 +7,10 @@
 
 #pragma once
 
+#if defined(ESP8266) || defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
+#error "Wrong SDK? This SDK supports only renesas_uno architecture. Please use https://github.com/sinricpro/esp8266-esp32-sdk for ESP8266, ESP32, RP2040"
+#endif
+
 #include "SinricProDeviceInterface.h"
 #include "SinricProInterface.h"
 #include "SinricProMessageid.h"
