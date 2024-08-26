@@ -23,14 +23,14 @@
       "name": "ArduinoJson",
       "version": "^7.0.3",
       "platforms": [
-        "renesas-ra"
+        "*"
       ]
     },
     {
       "name": "WebSockets",
       "version": "^2.6.0",
       "platforms": [
-        "renesas-ra"
+        "*"
       ]
     }
   ],
