@@ -16,25 +16,37 @@
 
 // Uncomment the following line to enable serial debug output
 //#define ENABLE_DEBUG
-#define SINRICPRO_NOSSL
 
-//#ifdef ENABLE_DEBUG
-//#define NODEBUG_WEBSOCKETS
-//#define NDEBUG
-//#endif
+#ifdef ENABLE_DEBUG
+#define DEBUG_ESP_PORT Serial
+#define NODEBUG_WEBSOCKETS
+#define NDEBUG
+#endif
 
 #include <Arduino.h>
+
+#if defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT)
+#include <WiFiNINA.h>
+#elif defined(WIO_TERMINAL) || defined(SEEED_XIAO_M0)
+#if __has_include(<rpcWiFi.h>)
+#include <rpcWiFi.h>
+#else
+#error "Please install rpcWiFi library!"
+#endif
+#elif defined(ARDUINO_UNOWIFIR4)
 #include "WiFiS3.h"
+#define SINRICPRO_NOSSL
+#endif
 
 #include "SinricPro.h"
 #include "SinricProSwitch.h"
 
 #define WIFI_SSID   ""
 #define WIFI_PASS   ""
-#define APP_KEY     ""  // Should look like "de0bxxxx-1x3x-4x3x-ax2x-5dabxxxxxxxx"
-#define APP_SECRET  ""  // Should look like "5f36xxxx-x3x7-4x3x-xexe-e86724a9xxxx-4c4axxxx-3x3x-x5xe-x9x3-333d65xxxxxx"
-#define SWITCH_ID   ""  // Should look like "5dc1564130xxxxxxxxxxxxxx"
-#define BAUD_RATE   115200              // Change baudrate to your need
+#define APP_KEY     ""      // Should look like "de0bxxxx-1x3x-4x3x-ax2x-5dabxxxxxxxx"
+#define APP_SECRET  ""      // Should look like "5f36xxxx-x3x7-4x3x-xexe-e86724a9xxxx-4c4axxxx-3x3x-x5xe-x9x3-333d65xxxxxx"
+#define SWITCH_ID   ""      // Should look like "5dc1564130xxxxxxxxxxxxxx"
+#define BAUD_RATE   115200  // Change baudrate to your need
 
 
 /* bool onPowerState(String deviceId, bool &state) 
@@ -51,10 +63,10 @@
  *  true if request should be marked as handled correctly / false if not
  */
 bool onPowerState(const String& deviceId, bool& state) {
-  Serial.println( state ? "on":"off");
+  Serial.println(state ? "on" : "off");
   return true;  // request handled properly
 }
- 
+
 
 // setup function for WiFi connection
 void setupWiFi() {
@@ -62,7 +74,8 @@ void setupWiFi() {
   if (WiFi.status() == WL_NO_MODULE) {
     Serial.println("Communication with WiFi module failed!");
     // don't continue
-    while (true);
+    while (true)
+      ;
   }
 
   String fv = WiFi.firmwareVersion();
@@ -81,7 +94,7 @@ void setupWiFi() {
     Serial.println(WIFI_SSID);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(WIFI_SSID, WIFI_PASS);
-     
+
     delay(1000);
   }
 
@@ -119,13 +132,13 @@ void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(BAUD_RATE);
   while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
+    ;  // wait for serial port to connect. Needed for native USB port only
   }
 
   setupWiFi();
   setupSinricPro();
 }
 
-void loop() { 
+void loop() {
   SinricPro.handle();
 }

@@ -8,21 +8,15 @@
 #pragma once
 #include <stdarg.h>
 
-/* no DEBUG_ESP_PORT.printf( __VA_ARGS__ ) */
-
 void log(const char* format, ...) {
     va_list arg;
     va_start(arg, format);
-    size_t ret = vprintf(format, arg);
+    vprintf(format, arg);
     va_end(arg);
 }
 
 #ifndef NODEBUG_SINRIC
-#ifdef DEBUG_ESP_PORT
-#define DEBUG_SINRIC(...) log(__VA_ARGS__)
-#else
-//#define DEBUG_WEBSOCKETS(...) os_printf( __VA_ARGS__ )
-#endif
+#define DEBUG_SINRIC(...) log( __VA_ARGS__ )
 #endif
 
 

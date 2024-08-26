@@ -98,6 +98,16 @@ void WebsocketListener::setExtraHeaders() {
     const char* platform = "UNOWIFIR4";
 #elif defined(ARDUINO_MINIMA)
     const char* platform = "MINIMA";
+#elif defined(ARDUINO_SAMD_MKRWIFI1010)
+    const char* platform = "MKRWIFI1010";
+#elif defined(ARDUINO_SAMD_NANO_33_IOT)
+    const char* platform = "NANO_33_IOT";
+#elif defined(SEEED_XIAO_M0)
+    const char* platform = "SEEED_XIAO_M0";
+#elif defined(WIO_TERMINAL)
+    const char* platform = "WIO_TERMINAL";
+#else
+    const char* platform = "UNKNOWN";
 #endif
     
     byte mac[6];

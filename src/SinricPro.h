@@ -8,7 +8,7 @@
 #pragma once
 
 #if defined(ESP8266) || defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
-#error "Wrong SDK? This SDK supports only renesas_uno architecture. Please use https://github.com/sinricpro/esp8266-esp32-sdk for ESP8266, ESP32, RP2040"
+#warning "Wrong SDK? Please use https://github.com/sinricpro/esp8266-esp32-sdk for ESP8266, ESP32, RP2040"
 #endif
 
 #include "SinricProDeviceInterface.h"
@@ -154,7 +154,7 @@ class SinricProClass : public SinricProInterface {
     String serverURL;
 
     WebsocketListener _websocketListener;
-    UdpListener       _udpListener;
+    //UdpListener       _udpListener;
     SinricProQueue_t  receiveQueue;
     SinricProQueue_t  sendQueue;
 
@@ -245,7 +245,7 @@ void SinricProClass::begin(String appKey, String appSecret, String serverURL) {
     this->appSecret = appSecret;
     this->serverURL = serverURL;
     _begin          = true;
-    _udpListener.begin(&receiveQueue);
+    //_udpListener.begin(&receiveQueue);
 }
 
 template <typename DeviceType>
@@ -297,7 +297,7 @@ void SinricProClass::handle() {
 
     if (!isConnected()) connect();
     _websocketListener.handle();
-    _udpListener.handle();
+    //_udpListener.handle();
 
     handleReceiveQueue();
     handleSendQueue();
@@ -323,7 +323,7 @@ void SinricProClass::handleResponse(JsonDocument& responseMessage) {
     (void)responseMessage;
     DEBUG_SINRIC("[SinricPro.handleResponse()]:\r\n");
 
-#ifndef NODEBUG_SINRIC
+#ifdef DEBUG_ESP_PORT
     serializeJsonPretty(responseMessage, DEBUG_ESP_PORT);
     Serial.println();
 #endif
@@ -331,7 +331,7 @@ void SinricProClass::handleResponse(JsonDocument& responseMessage) {
 
 void SinricProClass::handleModuleRequest(JsonDocument& requestMessage, interface_t Interface) {
     DEBUG_SINRIC("[SinricPro.handleModuleScopeRequest()]: handling device sope request\r\n");
-#ifndef NODEBUG_SINRIC
+#ifdef DEBUG_ESP_PORT
     serializeJsonPretty(requestMessage, DEBUG_ESP_PORT);
 #endif
 
@@ -362,7 +362,7 @@ void SinricProClass::handleModuleRequest(JsonDocument& requestMessage, interface
 
 void SinricProClass::handleDeviceRequest(JsonDocument& requestMessage, interface_t Interface) {
     DEBUG_SINRIC("[SinricPro.handleDeviceRequest()]: handling device sope request\r\n");
-#ifndef NODEBUG_SINRIC
+#ifdef DEBUG_ESP_PORT
     serializeJsonPretty(requestMessage, DEBUG_ESP_PORT);
 #endif
 
@@ -462,7 +462,7 @@ void SinricProClass::handleSendQueue() {
         String messageStr;
 
         serializeJson(jsonMessage, messageStr);
-#ifndef NODEBUG_SINRIC
+#ifdef DEBUG_ESP_PORT
         serializeJsonPretty(jsonMessage, DEBUG_ESP_PORT);
         Serial.println();
 #endif
@@ -474,7 +474,7 @@ void SinricProClass::handleSendQueue() {
                 break;
             case IF_UDP:
                 DEBUG_SINRIC("[SinricPro:handleSendQueue]: Sending to UDP\r\n");
-                _udpListener.sendMessage(messageStr);
+                //_udpListener.sendMessage(messageStr);
                 break;
             default:
                 break;

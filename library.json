@@ -16,7 +16,7 @@
   "version": "1.0.0",
   "frameworks": "arduino",
   "platforms": [
-    "renesas-ra"
+    "*"
   ],
   "dependencies": [
     {
@@ -28,7 +28,7 @@
     },
     {
       "name": "WebSockets",
-      "version": "^2.5.1",
+      "version": "^2.6.0",
       "platforms": [
         "renesas-ra"
       ]
